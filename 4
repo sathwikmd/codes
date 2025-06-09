@@ -1,0 +1,351 @@
+/*
+ *  C solution
+ */
+
+
+/*
+ * Variable stores the start of name with its length and values.
+ * This saves memory because no need to allocate strings.
+ * Also, variable is a node in its scope.
+ */
+struct variable {
+    int val;
+    int nameLen;
+    char *name;
+    struct variable *next;
+};
+
+
+/*
+ * Scope is a node in the scope chain.
+ */
+struct scope {
+    struct variable *varHead;
+    struct scope *up;
+};
+
+/*
+ * Space complexity is O(n*m),
+ * where n is the mean count of variables in the scopes,
+ * m is the count of scopes. 
+ * Scopes and variables are in singly linked list.
+ */
+
+
+static struct variable* scopeLookupLocally(struct scope *s, char *varName, int nameLen) {
+    struct variable *n;
+    int cmpLen;
+    for (n = s->varHead; n != NULL; n = n->next) {
+        cmpLen = n->nameLen;
+        cmpLen = (cmpLen < nameLen ? nameLen : cmpLen);
+        if (!strncmp(varName, n->name, cmpLen)) {
+            return n;
+        }
+    }
+    return NULL;
+}
+
+/*
+ * Define or redefine a variable in the scope only.
+ * It's O(n) worst case time complexity,
+ * where n is the count of variables in scope.
+ */
+static struct variable* scopeDefineLocally(struct scope *s, char *varName, int nameLen) {
+    struct variable **n;
+    int cmpLen;
+    for (n = &s->varHead; *n != NULL; n = &(*n)->next) {
+        cmpLen = (*n)->nameLen;
+        cmpLen = (cmpLen < nameLen ? nameLen : cmpLen);
+        if (!strncmp(varName, (*n)->name, cmpLen)) {
+            return *n;
+        }
+    }
+    *n = malloc(sizeof(struct variable));
+    if (*n == NULL) {
+        return NULL;
+    }
+    (*n)->name = varName;
+    (*n)->nameLen = nameLen;
+    (*n)->next = NULL;
+    return *n;
+}
+
+/*
+ * Look up for the closest variable in all the scope chain.
+ * It's O(n*m) worst case time complexity,
+ * where n is the mean count of variables in the scopes,
+ * m is the count of scopes.
+ */
+static struct variable* scopeLookup(struct scope *s, char *varName, int nameLen) {
+    struct scope *n;
+    struct variable *var;
+    for (n = s; n != NULL; n = n->up) {
+        var = scopeLookupLocally(n, varName, nameLen);
+        if (var) {
+            return var;
+        }
+    }
+    return NULL;
+}
+
+static void scopeFreeVariables(struct scope *s) {
+    struct variable *n, *t;
+    for (n = s->varHead; n != NULL;) {
+        t = n;
+        n = n->next;
+        free(t);
+    }
+    s->varHead = NULL;
+}
+
+static void scopeFree(struct scope *s) {
+    struct scope *n, *t;
+    for (n = s; n != NULL;) {
+        t = n;
+        n = n->up;
+        scopeFreeVariables(t);
+        free(t);
+    }
+}
+
+
+/*
+ * Append a new scope in the chain.
+ */
+static struct scope* pushScope(struct scope **s) {
+    struct scope *parent = *s;
+    *s = malloc(sizeof(struct scope));
+    if (*s == NULL) {
+        *s = parent;
+        return NULL;
+    }
+    (*s)->up = parent;
+    (*s)->varHead = NULL;
+    return *s;
+}
+
+/*
+ * Remove the current scope in the chain and go up.
+ */
+static struct scope* popScope(struct scope **s) {
+    struct scope *parent = (*s)->up;
+    scopeFreeVariables(*s);
+    free(*s);
+    return *s = parent;
+}
+
+
+/*
+ * Parsing with tokens that store their type, string and integer values.
+ * As in variables, the string value is a piece of the expression string.
+ */
+#define TOKEN_END   0
+#define TOKEN_INT   1
+#define TOKEN_NAME  2
+#define TOKEN_SEXP  3
+#define TOKEN_CLOSE 4
+struct token {
+    int type;
+    int len;
+    int val;
+    char *str;
+};
+
+
+/*
+ * Parse the next token and move the string pointer (**s).
+ * Return 0 if a closing parenthesis encounted, otherwise 1 
+ */
+static int tokenNext(char **s, struct token *dst) {
+    int status = 1, sign;
+    for (; isspace(**s); ++(*s)) {}
+    if (**s == '\0') {
+        dst->len = 0;
+        dst->type = TOKEN_END;
+        return 1;
+    }
+    dst->str = *s;
+    if (isdigit(**s) || **s == '-' || **s == '+') {
+        sign = **s == '-';
+        if (**s == '-' || **s == '+') {
+            ++(*s);
+        }
+        dst->type = TOKEN_INT;
+        dst->val = 0;
+        for (; isdigit(**s); ++(*s)) {
+            dst->val = dst->val*10 - (**s - '0');
+        }
+        dst->val = (sign ? dst->val : -dst->val);
+    } else if (isalpha(**s)) {
+        dst->type = TOKEN_NAME;
+        for (; isalnum(**s); ++(*s)) {}
+    } else if (**s == '(') {
+        dst->type = TOKEN_SEXP;
+        ++(*s);
+    } else if (**s == ')') {
+        status = 0;
+        dst->type = TOKEN_CLOSE;
+        ++(*s);
+    }
+
+    dst->len = *s - dst->str;
+    return status;
+}
+
+/*
+ * Evaluation part.
+ * This is recursive the '_evaluate' function calling its subroutines.
+ * The function saves the result in the pointer.
+ * In case of error, the function returns zero.
+ */
+
+static int _evaluate(char **s, int *result, struct token *tok, struct scope **curScope);
+
+static int evaluateCommandLet(char **s, int *result, struct token *tok, struct scope **curScope) {
+    struct variable *var;
+    char *oldPos, *varName;
+    int varNameLen;
+    int varVal;
+    if (pushScope(curScope) == NULL) {
+        return 0;
+    }
+    for (;;) { /* Defining variables while it's possible. */
+        oldPos = *s;
+        if (!tokenNext(s, tok)) {
+            return 0;
+        }
+        if (tok->type == TOKEN_NAME) {
+            varName = tok->str;
+            varNameLen = tok->len;
+            if (!_evaluate(s, &varVal, tok, curScope)) {
+                *s = oldPos;
+                break;
+            }
+            var = scopeDefineLocally(*curScope, varName, varNameLen);
+            if (var == NULL) {
+                return 0;
+            }
+            var->val = varVal;
+        } else {
+            *s = oldPos;
+            break;
+        }
+    }
+    /* Evaluate the trailing part. */
+    if (!_evaluate(s, result, tok, curScope)) {
+        return 0;
+    }
+    if (tokenNext(s, tok)) { /* Skip a closing parenthesis */
+        return 0;
+    }
+    popScope(curScope);
+    return 1;
+}
+
+static int evaluateCommandAdd(char **s, int *result, struct token *tok, struct scope **curScope) {
+    int op1, op2;
+    if (!_evaluate(s, &op1, tok, curScope)) {
+        return 0;
+    }
+    if (!_evaluate(s, &op2, tok, curScope)) {
+        return 0;
+    }
+    *result = op1 + op2;
+    if (tokenNext(s, tok)) { /* Skip a closing parenthesis */
+        return 0;
+    }
+    return 1;
+}
+
+static int evaluateCommandMult(char **s, int *result, struct token *tok, struct scope **curScope) {
+    int op1, op2;
+    if (!_evaluate(s, &op1, tok, curScope)) {
+        return 0;
+    }
+    if (!_evaluate(s, &op2, tok, curScope)) {
+        return 0;
+    }
+    *result = op1*op2;
+    if (tokenNext(s, tok)) {/* Skip a closing parenthesis */
+        return 0;
+    }
+    return 1;
+}
+
+/*
+ * Evaluate a command in the sexp.
+ * Simple searching for commands with strncmp.
+ */
+static int evaluateCommand(char **s, int *result, struct token *tok, struct scope **curScope) {
+    char *cmd = tok->str;
+    int cmdLen = tok->len;
+
+    if (!strncmp(cmd, "let", cmdLen)) {
+        return evaluateCommandLet(s, result, tok, curScope);
+    }
+    if (!strncmp(cmd, "add", cmdLen)) {
+        return evaluateCommandAdd(s, result, tok, curScope);
+    }
+    if (!strncmp(cmd, "mult", cmdLen)) {
+        return evaluateCommandMult(s, result, tok, curScope);
+    }
+    return 0;
+}
+
+static int evaluateSexp(char **s, int *result, struct token *tok, struct scope **curScope) {
+    if (!tokenNext(s, tok)) {
+        return 0;
+    }
+    if (tok->type == TOKEN_NAME) {
+        return evaluateCommand(s, result, tok, curScope);
+    }
+    return 0;
+}
+
+static int _evaluate(char **s, int *result, struct token *tok, struct scope **curScope) {
+    struct variable *var;
+
+    if (!tokenNext(s, tok)) {
+        return 0;
+    }
+    if (tok->type == TOKEN_END) {
+		*result = 0;
+        return 1;
+    }
+    if (tok->type == TOKEN_SEXP) {
+        return evaluateSexp(s, result, tok, curScope);
+    }
+    if (tok->type == TOKEN_INT) {
+        *result = tok->val;
+        return 1;
+    }
+    if (tok->type == TOKEN_NAME) {
+        var = scopeLookup(*curScope, tok->str, tok->len);
+        if (var == NULL) {
+            return 0;
+        }
+        *result = var->val;
+        return 1;
+    }
+
+    return 0;
+}
+
+
+int evaluate(char * expression) {
+    /* Defining all the needed components. */
+    struct scope *curScope = NULL;
+    struct token token;
+    char *s = expression;
+    int result = 0;
+
+    if (!_evaluate(&s, &result, &token, &curScope)) {
+        goto error;
+    }
+
+    return result;
+
+error: /* Error case. */
+    scopeFree(curScope); /* Free the scope chain if not empty */
+    return -1;
+}
