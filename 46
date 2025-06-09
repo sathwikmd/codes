@@ -1,0 +1,24 @@
+class Solution {
+public:
+    vector<vector<int>> matrixReshape(vector<vector<int>>& mat, int r, int c) {
+        
+        int rows = mat.size(), columns = mat[0].size(), length = rows * columns; 
+            // Fetch size of the input matrix (rows and columns) and total length of the input matrix.
+        
+        if(length != (r * c)) return mat; 
+            // If the given reshape size is invalid then the return input matrix itself.
+        
+        vector<vector<int>> output(r, vector<int>(c));
+            // To store the output matrix.
+        
+        for(int i = 0; i < length; i++) {
+            
+            output[i / c][i % c] = mat[i / columns][i % columns];
+                // i/c - will return row (The number after point is neglected as i and c is declared as integer).
+                // i%c - will return column (The number after point is neglected as i and c is declared as integer).
+                // i / columns and i % columns also do the same.
+        }
+        
+        return output; 
+    }
+};
