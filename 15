@@ -1,0 +1,10 @@
+int comparator(const void *p, const void *q) // used in qsort
+    {return (*(int*)p-*(int*)q);} 
+
+int maxIceCream(int* costs, int size, int coins){
+    qsort((void*)costs, size, sizeof(costs[0]), comparator);
+
+    for(int i=0 ;i<size; ++i)
+        if((coins-=costs[i])<0) return i;
+    return size;
+}
