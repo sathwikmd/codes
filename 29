@@ -1,0 +1,30 @@
+void setZeroes(int** matrix, int matrixSize, int* matrixColSize) {
+    int r= matrixSize;
+    int c= *matrixColSize;
+    int row[r];
+    int col[c];
+
+    for(int i = 0; i < r; i++) {
+        row[i] = 0;
+    }
+    for(int j = 0; j < c; j++) {
+        col[j] = 0;
+    }
+
+    for(int i = 0; i < r; i++) {
+        for(int j = 0; j < c; j++) {
+            if(matrix[i][j] == 0) {
+                row[i] = 1;
+                col[j] = 1;
+            }
+        }
+    }
+
+    for(int i = 0; i < r; i++) {
+        for(int j = 0; j < c; j++) {
+            if(row[i] == 1|| col[j] == 1) {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+}
