@@ -1,0 +1,24 @@
+class Solution {
+public:
+    string convert(string s, int numRows) {
+        string res[1000];
+       for(int i=0;i<numRows;i++){
+        res[i]="";
+       }
+        int leng=s.size();
+        int a=2*numRows-2;
+        if(a==0) return s;
+        for(int i=0;i<leng;i++){
+            int x=i%a;
+            if(x<=numRows-1) res[x]+=s[i];
+            else{
+                res[2*numRows-2-x]+=s[i];
+            }
+        }
+        string ok="";
+        for(int i=0;i<numRows;i++){
+         ok+=res[i];
+        }
+        return ok;
+    }
+};
