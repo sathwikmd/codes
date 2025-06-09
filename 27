@@ -1,0 +1,33 @@
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+
+int count_ones(int a) {
+    int count = 0;
+    while(a > 0) {
+        if((a & 0x01)) {
+            count += 1;
+        }
+
+        a >>= 1;
+    }
+
+    return count;
+}
+
+int cmp(const void *a, const void* b) {
+    int a_count_ones = count_ones(*(int*)a);
+    int b_count_ones = count_ones(*(int*)b);
+    if(a_count_ones == b_count_ones) {
+        return (*(int*)a - *(int *)b);
+    } else {
+        return (a_count_ones - b_count_ones);
+    }
+}
+
+int* sortByBits(int* arr, int arrSize, int* returnSize) {
+    qsort(arr, arrSize, sizeof(int), cmp);
+    *returnSize = arrSize;
+
+    return arr;
+}
