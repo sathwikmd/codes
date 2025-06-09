@@ -1,0 +1,25 @@
+bool match(char a, char b) {
+    return (a == '(' && b == ')') || (a == '{' && b == '}') ||
+           (a == '[' && b == ']');
+}
+
+bool isValid(char* s) {
+    int len = strlen(s);
+    char stack[len];
+    int top = -1;
+    char popped_ch;
+
+    for (int i = 0; s[i] != '\0'; i++) {
+        if (s[i] == '(' || s[i] == '{' || s[i] == '[') {
+            stack[++top] = s[i];
+        } else if (s[i] == ')' || s[i] == '}' || s[i] == ']') {
+            if (top == -1)
+                return false;
+            popped_ch = stack[top--];
+            if (!match(popped_ch, s[i]))
+                return false;
+        }
+    }
+
+    return (top == -1); 
+}
