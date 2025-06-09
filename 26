@@ -1,0 +1,26 @@
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* findSmallestSetOfVertices(int n, int** edges, int edgesSize, int* edgesColSize, int* returnSize) {
+    int* list = malloc(n * sizeof(int));
+
+    //filling the array with zeros
+    memset(list, 0, n * sizeof(int));
+
+    // Counting incoming edges
+    for(int i = 0; i < edgesSize; ++i){
+        list[edges[i][1]] += 1; 
+    }
+
+    // The maximum possible result size - n
+    int* result = malloc(n * sizeof(int));
+    int index = 0;
+    for(int i = 0; i < n; ++i){
+        if(list[i] == 0){
+            result[index++] = i;
+        }
+    }
+    free(list);             //don't forget to clean your memory
+    *returnSize = index;    // Set the actual response size
+    return result;
+}
