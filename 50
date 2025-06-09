@@ -1,0 +1,42 @@
+int compare(const void *a,const void *b){
+    char nums1[50],nums2[50];
+
+    strcpy(nums1,*(char **)a);
+    strcat(nums1,*(char **)b);
+
+    strcpy(nums2,*(char **)b);
+    strcat(nums2,*(char **)a);
+
+    return strcmp(nums2,nums1);
+}
+
+
+
+char* largestNumber(int* nums, int numsSize) 
+{
+    int length=0;
+    char *strNums[numsSize];
+    for(int i=0;i<numsSize;i++){
+        strNums[i]=(char *)malloc(sizeof(char)*12);
+        sprintf(strNums[i],"%d",nums[i]);
+        length+=strlen(strNums[i]);
+
+    }
+
+    qsort(strNums,numsSize,sizeof(char *),compare);
+
+    if (*strNums[0]=='0'){
+        char *result=(char*)malloc(sizeof(char)*2);
+        strcpy(result,"0");
+        return result;
+    }
+    
+    char *result=(char *)malloc(sizeof(char)*(length+1));
+    result[0]='\0';
+    for(int i=0;i<numsSize;i++){
+        strcat(result,strNums[i]);
+    }
+    return result;
+
+    
+}
