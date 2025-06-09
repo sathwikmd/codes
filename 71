@@ -1,0 +1,109 @@
+static auto speedup = []() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cout.tie(nullptr);
+    return nullptr;
+}();
+
+
+class segtree{
+public:
+    int n;
+    vector<int> arr;
+    bool q;
+    int merge(int a, int b){
+        return max(a, b);
+    }
+    
+    segtree(int n){
+        this->n=n;
+        int x=1;
+        while (x<n) x*=2;
+        arr.assign(2*x, INT_MIN);
+    }
+    
+    void build(vector<int>& v, int x, int left, int right){
+        if (left+1==right){
+            arr[x]=v[left];
+            return;
+        }
+        int mid=left+(right-left)/2;
+        build(v, 2*x+1, left, mid);
+        build(v, 2*x+2, mid, right);
+        arr[x]=merge(arr[2*x+1], arr[2*x+2]);
+    }
+    
+    void build(vector<int>& v){
+        build(v, 0, 0, n);
+    };
+    
+    void set(int i, int val){
+        set(i, val, 0, n, 0);
+        return;
+    }
+    
+    void set(int i, int val, int left, int right, int x){
+        if (left+1==right) {
+            arr[x]=val;
+            return;
+        }
+        int mid=left+(right-left)/2;
+        if (i<mid) set(i, val, left, mid, 2*x+1);
+        else set(i, val, mid, right, 2*x+2);
+        arr[x]=merge(arr[2*x+1], arr[2*x+2]);
+        return;
+    }
+    int lbound(int l, int k){
+        q=true;
+        int rex=lbound(l, k, 0, 0, n);
+        if (q) return -1;
+        return rex;
+    }
+    
+    int lbound(int l, int k, int x, int left, int right){
+        if (left+1==right){
+            q=false;
+            return left;
+        }
+        int mid=left+(right-left)/2;
+        int a, b;
+        if (arr[2*x+1]>=k && l<mid) {
+            a=lbound(l, k, 2*x+1, left, mid);
+            if (!q) return a;
+        }
+        if (q && arr[2*x+2]>=k) return lbound(l, k, 2*x+2, mid, right);
+        return -1;
+    }
+    
+};
+
+class Solution {
+public:
+    vector<int> busiestServers(int k, vector<int>& arrival, vector<int>& load) {
+        vector<int> fr(k, 0);
+        int n=arrival.size();
+        vector<int> nums(k, 0);
+        segtree st=segtree(k);
+        st.build(nums);
+        int y, z, maxfr;     // maxfr = current max frequency of any server
+        for (int i=0; i<n; ++i){
+            y=-arrival[i];                             // using -ve arrival time because time when server is free is also -ve
+            z=st.lbound(i%k,  y);                // min indice z>=i%k such that nums[z]>=nums[i%k]
+            if (z==-1) z=st.lbound(0, y);
+            if (z!=-1){
+                fr[z]++;
+                maxfr=max(maxfr, fr[z]);
+                st.set(z, y-load[i]);
+            }
+        }
+        
+        vector<int> ans;
+        ans.reserve(k);
+        for (int i=0; i<k; ++i){
+            if (fr[i]==maxfr){
+                ans.push_back(i);
+            }
+        }
+        return ans;
+    }
+};
