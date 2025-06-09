@@ -1,0 +1,22 @@
+
+
+int lengthOfLongestSubstring(char* s) {
+    int i;
+    int windowLen =0;
+    int max_len = 0;
+    int last_occ = 0;
+    int curWindowStart = 1;
+    int lookup_table[128] = { [0 ... 127] = 0};
+    int strln = strlen(s);
+
+    for(i=0;i < strln ;i++){
+
+        if ( (last_occ = lookup_table[ s[i] ]) >= curWindowStart  ){
+            curWindowStart = last_occ +1;
+        }
+        windowLen = i+2 - curWindowStart; 
+        max_len = windowLen > max_len ? windowLen : max_len; 
+        lookup_table[ s[i] ] = i+1 ;// i+1 , zero means no previous occurrnce 
+    } 
+    return max_len;
+}
