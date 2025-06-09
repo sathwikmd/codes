@@ -1,0 +1,24 @@
+class Solution {
+    NestedInteger deserialize(string& s, int& i) {
+       NestedInteger res;
+       if(s[i] == '[') {
+           while(s[i] != ']') {
+               ++i;
+               if(s[i] == ']') break;
+               res.add(deserialize(s,i));
+           }
+           ++i;
+       } else {
+           int j = i;
+           while(j < s.size() && s[j] != ',' && s[j] != ']') ++j;
+           res.setInteger(stoi(s.substr(i, j-i)));
+           i = j;
+       }
+       return res;
+    }
+public:
+    NestedInteger deserialize(string s) {
+        int i = 0;
+        return deserialize(s, i);
+    }
+};
