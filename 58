@@ -1,0 +1,20 @@
+bool isPalindrome(char *s) {
+    int n = strlen(s);
+    char f[200001];
+    char r[200001];
+    int j = 0;
+
+    for (int i = 0; i < n; i++) {
+        if (isalnum(s[i])) {
+            f[j++] = tolower(s[i]);
+        }
+    }
+    f[j] = '\0';
+
+    for (int i = 0; i < j; i++) {
+        r[i] = f[j - 1 - i];
+    }
+    r[j] = '\0';
+
+    return strcmp(f, r) == 0;
+}
