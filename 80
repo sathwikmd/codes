@@ -1,0 +1,65 @@
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     struct ListNode *next;
+ * };
+ */
+
+struct ListNode* appendNode(struct ListNode* head, int value) {
+    struct ListNode* newNode = (struct ListNode*) malloc(sizeof(struct ListNode));
+    if (!newNode) return head;  // malloc failure, just return current head
+
+    newNode->val = value;
+    newNode->next = NULL;
+
+    if (head == NULL) {
+        return newNode;
+    }
+
+    struct ListNode* current = head;
+    while (current->next != NULL) {
+        current = current->next;
+    }
+    current->next = newNode;
+    return head;
+}
+
+struct ListNode* addTwoNumbers(struct ListNode* l1, struct ListNode* l2) {
+    struct ListNode *current1 = l1, *current2 = l2;
+    struct ListNode* l3 = NULL;
+    int carry = 0;
+
+    while (current1 != NULL || current2 != NULL) {
+        int sum = 0;
+
+        if (current1 != NULL && current2 != NULL) {
+            sum = (current1->val + current2->val + carry) % 10;
+            carry = (current1->val + current2->val + carry) / 10;
+            // printf("sum = %d carry = %d\n", sum, carry);
+            l3 = appendNode(l3, sum);
+            current1 = current1->next;
+            current2 = current2->next;
+        } else if (current1 != NULL && current2 == NULL) {
+            sum = (current1->val + carry) % 10;
+            carry = (current1->val + carry) / 10;
+            // printf("l1: sum = %d carry = %d\n", sum, carry);
+            l3 = appendNode(l3, sum);
+            current1 = current1->next;
+        } else if (current1 == NULL && current2 != NULL) {
+            sum = (current2->val + carry) % 10;
+            carry = (current2->val + carry) / 10;
+            // printf("l2: sum = %d carry = %d\n", sum, carry);
+            l3 = appendNode(l3, sum);
+            current2 = current2->next;
+        }
+    }
+
+    if (carry != 0) {
+        // printf("final carry = %d\n", carry);
+        l3 = appendNode(l3, carry);
+    }
+
+    return l3;
+}
