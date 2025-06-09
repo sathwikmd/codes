@@ -1,0 +1,40 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    int count;
+    char ch;
+} CharFreq;
+
+int cmp(const void *a, const void *b) {
+    return ((CharFreq *)b)->count - ((CharFreq *)a)->count;
+}
+
+char *longestDiverseString(int a, int b, int c) {
+    CharFreq pq[3] = {{a, 'a'}, {b, 'b'}, {c, 'c'}};
+    qsort(pq, 3, sizeof(CharFreq), cmp);
+
+    char *result = (char *)malloc(1000 * sizeof(char));
+    int pos = 0;
+
+    while (pq[0].count > 0) {
+        if (pos >= 2 && result[pos - 1] == pq[0].ch && result[pos - 2] == pq[0].ch) {
+            if (pq[1].count == 0) break;
+            result[pos++] = pq[1].ch;
+            pq[1].count--;
+        } else {
+            result[pos++] = pq[0].ch;
+            pq[0].count--;
+        }
+        qsort(pq, 3, sizeof(CharFreq), cmp);
+    }
+
+    result[pos] = '\0';
+    return result;
+}
+
+int main() {
+    printf("%s\n", longestDiverseString(1, 1, 7));
+    return 0;
+}
