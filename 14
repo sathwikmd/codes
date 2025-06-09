@@ -1,0 +1,9 @@
+int totalMoney(int n) {
+    int full = n / 7;
+    int remaining = n % 7;
+    int answer = (full * 28) + (((full - 1) * full) / 2) * 7;
+    for (int i = 1; i <= remaining; i++) {
+        answer += full + i;
+    }
+    return answer;
+}
