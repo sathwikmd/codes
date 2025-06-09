@@ -1,0 +1,98 @@
+#include <stdbool.h>
+#include <stdlib.h>
+
+// simple linked list node structure
+typedef struct mct {
+    int time; // time
+    bool isStart; // true if start, false if end
+    struct mct* next;
+} MyCalendarThree;
+
+// Initialize first element
+MyCalendarThree* myCalendarThreeCreate() {
+    MyCalendarThree* head = malloc(sizeof(MyCalendarThree));
+    head->time = -1;
+    head->isStart = true;
+    head->next = NULL;
+    return head;
+}
+
+int myCalendarThreeBook(MyCalendarThree* obj, int start, int end) {
+    // we're guaranteed to have at least one node, so we can start with obj->next
+    MyCalendarThree* iter = obj->next;
+    MyCalendarThree* prev = obj;
+    
+    // initialize start node
+    MyCalendarThree* startmct = malloc(sizeof(MyCalendarThree));
+    startmct->time = start;
+    startmct->isStart = true;
+    startmct->next = NULL;
+    
+    // initialize end node
+    MyCalendarThree* endmct = malloc(sizeof(MyCalendarThree));
+    endmct->time = end;
+    endmct->isStart = false;
+    endmct->next = NULL;
+    
+    // if this is our first node then obj->next = NULL
+    // in that case, we just insert our start/end and then return 1
+    if (!iter) {
+        obj->next = startmct;
+        startmct->next = endmct;
+        return 1;
+    }
+    
+    // iterate through list, stopping at the first node strictly greater than start
+    while (iter && iter->time <= start) {
+        prev = iter;
+        iter = iter->next; 
+    }
+    
+    // insert start node right before current node
+    prev->next = startmct;
+    startmct->next = iter;
+    prev = startmct;
+    
+    // continue to iterate through list, stopping at first node greater than or equal to end
+    while (iter && iter->time < end) {
+        prev = iter;
+        iter = iter->next;
+    }
+    
+    // insert end node right before current node
+    prev->next = endmct;
+    endmct->next = iter;
+    
+    // iterate over the list again, updating the cumulative sum at each step and keeping track of max seen
+    int prevsum = 0;
+    int largest = 0;
+    iter = obj->next; // reset iterator
+    while (iter) {
+        // if isStart, increment, otherwise decrement
+        iter->isStart ? prevsum++ : prevsum--;
+        if (prevsum > largest)
+            largest = prevsum;
+        iter = iter->next;
+    }
+    
+    return largest;
+}
+
+void myCalendarThreeFree(MyCalendarThree* obj) {
+    // sequentially free nodes
+    MyCalendarThree* iter = obj;
+    while (iter) {
+        obj = obj->next;
+        free(iter);
+        iter = obj;
+    }
+}
+
+
+/**
+ * Your MyCalendarThree struct will be instantiated and called as such:
+ * MyCalendarThree* obj = myCalendarThreeCreate();
+ * int param_1 = myCalendarThreeBook(obj, startTime, endTime);
+ 
+ * myCalendarThreeFree(obj);
+*/
