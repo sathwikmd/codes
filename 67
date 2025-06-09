@@ -1,0 +1,19 @@
+int maxProfit(int* prices, int pricesSize) {
+        
+    int max_profit = 0, min_price = prices[0];
+
+    for(int i = 1; i < pricesSize; i++){
+        if(prices[i] > min_price){
+            int profit = prices[i] - min_price;
+            if(profit > max_profit){
+                max_profit = profit;
+            }
+        }// Update min_price if current price is less than min_price
+        
+        if(prices[i] < min_price){
+            min_price = prices[i];
+        }
+    }
+    
+    return max_profit;
+}
