@@ -1,0 +1,20 @@
+import java.util.Scanner;
+class Main
+    {
+        public static void main(String[] args)
+        {
+            Scanner sc=new Scanner(System.in);
+            System.out.print("Enter ur salary:");
+            double basic=sc.nextDouble();
+            double hra=basic*0.20;
+            double da=basic*0.50;
+            double gross=basic+hra+da;
+            double pf=basic*0.12;
+            double tax=gross*0.10;
+            double totaldeductions=pf+tax;
+            double netsalary=gross-totaldeductions;
+            System.out.printf("Gross salary:%.2f\n",gross);
+            System.out.printf("Total deductions:%.2f\n",totaldeductions);
+            System.out.printf("net salary:%.2f\n",netsalary);
+        }
+    }
