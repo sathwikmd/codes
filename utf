@@ -1,0 +1,30 @@
+import java.util.Scanner;
+class Main
+    {
+        public static void main(String[] args)
+        {
+            
+            Scanner sc=new Scanner(System.in);
+            System.out.print("enter temp in celsius:");
+            double celsius=sc.nextDouble();
+            double fahrenheit=celsius*9.0/5+32;
+            double kelvin=celsius+273.15;
+            String classification;
+            if(celsius<0)
+            {
+                classification="Frezing";
+            }
+            else if(celsius<=15)
+            {
+                classification="cold";
+            }
+            else if(celsius<=30)
+            {
+                classification="peasent";
+            }
+            else
+            {
+                classification="hot";
+            }
+        }
+    }
