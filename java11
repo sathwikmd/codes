@@ -1,0 +1,27 @@
+
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String args[]) {
+        Scanner sc=new Scanner(System.in);
+        System.out.println("Enter the limit:");
+        int limit=sc.nextInt();
+        int num,rem,sum=0;
+        System.out.print("arm from 1 to n");
+        for(int i=1;i<=limit;i++)
+            {
+                num=i;
+                while(num>0)
+                    {
+                        rem=num%10;
+                        sum=sum+(rem*3);
+                        num=num/10;
+                    }
+                if(sum==i)
+                {
+                    System.out.print(i+" ");
+                }
+                sum=0;
+            }
+    }
+}
