@@ -1,0 +1,23 @@
+
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String args[]) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter the arm number:");
+        int n = sc.nextInt();
+
+        int temp = n, sum = 0, r;
+
+        while (n > 0) {
+            r = n % 10;
+            sum += r * r * r;
+            n = n / 10;
+        }
+
+        if (temp == sum)
+            System.out.println("Given number is Armstrong number " + temp);
+        else
+            System.out.println("Given number is not Armstrong number");
+    }
+}
